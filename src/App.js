@@ -1,31 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import DiaryEditor from './DiaryEditor';
 import DiaryList from './DiaryList';
 import './App.css';
-
-// const dummyList = [
-//     {
-//         id: 1,
-//         author: 'tanmtn',
-//         content: 'hi 1',
-//         emotion: 1,
-//         created_date: new Date().getTime(),
-//     },
-//     {
-//         id: 2,
-//         author: '케로로',
-//         content: 'hi 2',
-//         emotion: 3,
-//         created_date: new Date().getTime(),
-//     },
-//     {
-//         id: 3,
-//         author: '쿠루루',
-//         content: 'hi 3',
-//         emotion: 5,
-//         created_date: new Date().getTime(),
-//     },
-// ];
 
 function App() {
     const [data, setData] = useState([]);
@@ -34,7 +10,6 @@ function App() {
 
     const getData = async () => {
         const res = await fetch('https://jsonplaceholder.typicode.com/comments').then((res) => res.json());
-        console.log(res);
 
         const initData = res.slice(0, 20).map((it) => {
             return {
@@ -76,9 +51,24 @@ function App() {
         setData(data.map((it) => (it.id === targetId ? { ...it, content: newContent } : it)));
     };
 
+    const getDiaryAnalysis = useMemo(() => {
+        console.log('일기 분석 시작');
+
+        const goodCount = data.filter((it) => it.emotion >= 3).length;
+        const badCount = data.length - goodCount;
+        const goodRatio = (goodCount / data.length) * 100;
+        return { goodCount, badCount, goodRatio };
+    }, [data.length]);
+
+    const { goodCount, badCount, goodRatio } = getDiaryAnalysis;
+
     return (
         <div className="App">
             <DiaryEditor onCreate={onCreate} />
+            <div>전체 일기 : {data.length}</div>
+            <div>기분이 좋은 일기 개수 : {goodCount}</div>
+            <div>기분이 나쁜 일기 개수 : {badCount}</div>
+            <div>기분이 좋은 일기 비율 : {goodRatio}</div>
             <DiaryList onEdit={onEdit} onRemove={onRemove} diaryList={data} />
         </div>
     );
